@@ -1,0 +1,14 @@
+#!/usr/bin/env xdg-open
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=Yu Medija Player
+GenericName=Video Player
+Comment=Lightweight cross-platform video player
+Exec=yu-medija-player %F
+Icon=yu-medija-player
+Terminal=false
+Categories=AudioVideo;Video;Player;
+MimeType=video/mp4;video/x-matroska;video/webm;video/x-msvideo;video/quicktime;
+StartupWMClass=YuMedijaPlayer
+Keywords=video;player;movie;srt;yu-medija-player;iptv;m3u;
