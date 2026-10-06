@@ -1,0 +1,82 @@
+Yu Medija Player — third-party binaries
+=======================================
+Fetched over HTTPS on 2026-10-05 for za-windows / za-mac build folders.
+Checksums verified where the upstream published them.
+
+---------------------------------------------------------------------------
+1) libmpv (Windows) — za-windows/libmpv/
+---------------------------------------------------------------------------
+File:     libmpv-2.dll
+Size:     ~115 MiB (120863744 bytes)
+Arch:     x86_64 (PE32+)
+Source:   shinchiro/mpv-winbuild-cmake release 20261005
+URL:      https://github.com/shinchiro/mpv-winbuild-cmake/releases/tag/20261005
+Archive:  mpv-dev-x86_64-20261005-git-c152964208.7z
+SHA-256 (archive, recorded after download; upstream published no checksum file):
+          7d9dd506da6b77e6054f56052f7423d9f7eed764f85154a6221925aba37dbfb2
+License:  mpv is LGPL v2.1+ / GPL v2+ (see libmpv/Copyright, LICENSE.LGPL, LICENSE.GPL)
+          Upstream: https://github.com/mpv-player/mpv
+
+How used: PyInstaller (yu-medija-player.spec) picks all *.dll from libmpv/
+          and embeds them next to the frozen exe. mpv_bootstrap.py loads
+          libmpv-2.dll from that folder / app dir.
+
+---------------------------------------------------------------------------
+2) yt-dlp (Windows) — za-windows/tools/yt-dlp.exe
+---------------------------------------------------------------------------
+File:     yt-dlp.exe
+Version:  2026.08.19
+Size:     17840399 bytes
+Source:   official yt-dlp GitHub releases
+URL:      https://github.com/yt-dlp/yt-dlp/releases/tag/2026.08.19
+SHA-256 (verified against SHA2-256SUMS from the same release):
+          66674953fe251b89f4d08c5f0e35e0728679bd67ab3d7d05c0562af101dd3e7a
+License:  Unlicense (tools/LICENSE.yt-dlp)
+          https://unlicense.org /
+
+---------------------------------------------------------------------------
+3) FFmpeg / ffprobe (Windows) — za-windows/tools/
+---------------------------------------------------------------------------
+Files:    ffmpeg.exe, ffprobe.exe, plus shared runtime DLLs:
+            avcodec-62.dll, avdevice-62.dll, avfilter-11.dll,
+            avformat-62.dll, avutil-60.dll, swresample-6.dll, swscale-9.dll
+Build:    BtbN FFmpeg-Builds — n8.1 win64-gpl-shared
+Archive:  ffmpeg-n8.1-latest-win64-gpl-shared-8.1.zip
+Source:   https://github.com/BtbN/FFmpeg-Builds/releases/tag/latest
+SHA-256 (verified against checksums.sha256 from the same release):
+          dfbb82e952cfa59570e4aaf98a1bcd4950bd9ec65e9ee8125ba73acf55f36681
+License:  GPL (tools/LICENSE.FFmpeg.txt) — GPL shared build (includes
+          GPL-licensed codecs). FFmpeg project: https://ffmpeg.org/
+
+How used: PyInstaller packs every file in tools/ next to the exe.
+          Inno Setup also copies tools\* into {app}.
+          App looks for yt-dlp / ffprobe beside the exe and in tools/.
+
+---------------------------------------------------------------------------
+4) yt-dlp (macOS) — za-mac/tools/yt-dlp
+---------------------------------------------------------------------------
+File:     yt-dlp  (renamed from yt-dlp_macos, chmod +x)
+Version:  2026.08.19
+Size:     37146048 bytes
+Type:     Mach-O universal (x86_64 + arm64)
+Source:   official yt-dlp GitHub releases
+URL:      https://github.com/yt-dlp/yt-dlp/releases/tag/2026.08.19
+SHA-256 (verified against SHA2-256SUMS; same hash as yt-dlp_macos):
+          0f192b7ec147ab6288885d6351d9ab67367640029b4377576ef46dd79cf7b202
+License:  Unlicense (tools/LICENSE.yt-dlp)
+
+---------------------------------------------------------------------------
+5) ffmpeg / ffprobe (macOS) — NOT bundled
+---------------------------------------------------------------------------
+Reason:   No single official trustworthy universal static redistributable
+          was added. Use Homebrew on the Mac that builds/runs the app:
+            brew install ffmpeg
+          (build_mac.sh already installs ffmpeg via brew when missing.)
+          You may later drop ffmpeg/ffprobe into za-mac/tools/ if desired.
+
+---------------------------------------------------------------------------
+6) libmpv (macOS) — via Homebrew at build time
+---------------------------------------------------------------------------
+build_mac.sh / README: brew install mpv  → PyInstaller can pick up
+libmpv.dylib from Homebrew paths (see yu-medija-player.spec).
+
