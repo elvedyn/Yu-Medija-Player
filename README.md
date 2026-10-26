@@ -94,14 +94,14 @@ chmod +x scripts/*.sh
 ./scripts/build_deb.sh
 ```
 
-Creates: `dist/yu-medija-player_1.0.0_amd64.deb`
+Creates: `dist/yu-medija-player_1.0.1_amd64.deb`
 
 Install:
 
 ```bash
-sudo apt install ./dist/yu-medija-player_1.0.0_amd64.deb
+sudo apt install ./dist/yu-medija-player_1.0.1_amd64.deb
 # or
-sudo dpkg -i dist/yu-medija-player_1.0.0_amd64.deb
+sudo dpkg -i dist/yu-medija-player_1.0.1_amd64.deb
 ```
 
 Needs `dpkg-deb` (comes with `dpkg-dev` on Debian/Ubuntu/Mint).
@@ -112,16 +112,46 @@ Needs `dpkg-deb` (comes with `dpkg-dev` on Debian/Ubuntu/Mint).
 ./scripts/build_appimage.sh
 ```
 
-Creates: `dist/yu-medija-player-1.0.0-x86_64.AppImage`
+Creates: `dist/yu-medija-player-1.0.1-x86_64.AppImage`
 
 Run:
 
 ```bash
-chmod +x dist/yu-medija-player-1.0.0-x86_64.AppImage
-./dist/yu-medija-player-1.0.0-x86_64.AppImage
+chmod +x dist/yu-medija-player-1.0.1-x86_64.AppImage
+./dist/yu-medija-player-1.0.1-x86_64.AppImage
 ```
 
 The script downloads `appimagetool` once into `dist/tools/`.
+
+## Install AppImage (recommended on Arch / CachyOS)
+
+```bash
+./scripts/build_appimage.sh
+./scripts/install_appimage.sh            # can also be given any .AppImage path
+```
+
+What it does, all inside your home folder (no `sudo`, no `pacman`):
+
+1. copies the AppImage to `~/Applications/yu-medija-player.AppImage` (stable path, survives rebuilds)
+2. installs the icons into `~/.local/share/icons/hicolor/*/apps/`
+3. writes `~/.local/share/applications/yu-medija-player.desktop`
+4. refreshes the desktop database (`update-desktop-database`, `kbuildsycoca6`, icon cache)
+5. makes it the **default** player for video files and m3u playlists via `xdg-mime`
+
+After that a double click in Dolphin, `xdg-open film.mkv` and “Open with → Yu Medija Player”
+all use it. The desktop file is named `yu-medija-player.desktop` on purpose: the app reports
+`_KDE_NET_WM_DESKTOP_FILE=yu-medija-player`, which is how KDE pairs the running window with
+its icon in the taskbar.
+
+Check and undo:
+
+```bash
+xdg-mime query default video/mp4          # → yu-medija-player.desktop
+rm -f "$HOME/Applications/yu-medija-player.AppImage" \
+      "$HOME/.local/share/applications/yu-medija-player.desktop"
+```
+
+On KDE you can also see/change it in *System Settings → Applications → File Associations*.
 
 ## Windows / macOS
 
@@ -135,7 +165,9 @@ sudo apt install libmpv2 ffmpeg gstreamer1.0-plugins-good gstreamer1.0-libav
 ```
 
 Arch / CachyOS: `sudo pacman -S mpv ffmpeg`. Without libmpv the app falls back to Qt
-Multimedia, which plays far fewer formats.
+Multimedia, which plays far fewer formats. The AppImage deliberately does **not** bundle
+libmpv, PipeWire or FFmpeg — it uses the ones from your system, so formats match your distro
+build instead of clashing with it.
 
 > Linux packages do **not** bundle libmpv: a library built for one distro cannot be
 > loaded on another, so the AppImage and `.deb` use the system one (the `.deb` lists

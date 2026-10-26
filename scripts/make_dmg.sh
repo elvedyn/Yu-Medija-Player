@@ -3,7 +3,7 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 APP="$ROOT/dist/yu-medija-player.app"
-OUT="$ROOT/dist/yu-medija-player-1.0.0.dmg"
+OUT="$ROOT/dist/yu-medija-player-1.0.1.dmg"
 if [[ ! -d "$APP" ]]; then
   echo "Missing dist/yu-medija-player.app — build with PyInstaller on macOS first."
   exit 1

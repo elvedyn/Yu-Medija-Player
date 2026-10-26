@@ -188,7 +188,7 @@ if sys.platform == 'darwin':
             'NSHighResolutionCapable': True,
             'CFBundleName': 'YuMedijaPlayer',
             'CFBundleDisplayName': 'Yu Medija Player',
-            'CFBundleShortVersionString': '1.0.0',
+            'CFBundleShortVersionString': '1.0.1',
             'LSMinimumSystemVersion': '11.0',
         },
     )

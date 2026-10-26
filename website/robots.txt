@@ -1,0 +1,5 @@
+# yumedija.com — Yu Medija Player
+User-agent: *
+Allow: /
+
+Sitemap: https://yumedija.com/sitemap.xml

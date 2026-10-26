@@ -41,6 +41,7 @@ from app.m3u import (
 )
 from app.media_info import probe_duration_ms, probe_stream_languages
 from app.mpv_player import MpvAudioOutput, MpvPlayer, MpvVideoWidget, looks_like_live, mpv_available
+from app.playlist_panel import PlaylistPanel
 from app.control_icons import apply_icon
 from app.resources import icon_path
 from app.settings import AppSettings
@@ -218,9 +219,22 @@ class VideoPlayer(QMainWindow):
   def _build_ui(self):
     central = QWidget()
     self.setCentralWidget(central)
-    root = QVBoxLayout(central)
+    root = QHBoxLayout(central)
     root.setContentsMargins(0, 0, 0, 0)
     root.setSpacing(0)
+
+    # Groups and channels live in a panel on the left (only while an M3U is
+    # loaded); the right column holds the video stage and its controls.
+    self.playlist_panel = PlaylistPanel()
+    self.playlist_panel.channel_chosen.connect(self.play_playlist_entry)
+    self.playlist_panel.hide()
+    root.addWidget(self.playlist_panel)
+
+    player_col_widget = QWidget()
+    player_col = QVBoxLayout(player_col_widget)
+    player_col.setContentsMargins(0, 0, 0, 0)
+    player_col.setSpacing(0)
+    root.addWidget(player_col_widget, 1)
 
     self.stage = QStackedWidget()
     self.stage.setObjectName("stage")
@@ -242,14 +256,14 @@ class VideoPlayer(QMainWindow):
     self.video_widget = self.video_host.video_widget
     self.stage.addWidget(self.video_host)
     self.stage.setCurrentWidget(self.welcome)
-    root.addWidget(self.stage, 1)
+    player_col.addWidget(self.stage, 1)
 
     self.subtitle_label = QLabel("")
     self.subtitle_label.setObjectName("subtitle")
     self.subtitle_label.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
     self.subtitle_label.setWordWrap(True)
     self.subtitle_label.hide()
-    root.addWidget(self.subtitle_label)
+    player_col.addWidget(self.subtitle_label)
 
     self.controls = QFrame()
     self.controls.setObjectName("controls")
@@ -372,7 +386,7 @@ class VideoPlayer(QMainWindow):
     btn_row.addWidget(self.btn_fullscreen)
 
     controls_col.addLayout(btn_row)
-    root.addWidget(self.controls)
+    player_col.addWidget(self.controls)
 
     if self._use_mpv:
       # libmpv: VLC-like embedded subtitle/audio switching (no Qt freeze)
@@ -852,6 +866,7 @@ class VideoPlayer(QMainWindow):
     self.settings.push_recent(source)
     self._close_playlist_act.setEnabled(True)
     self._rebuild_category_menus()
+    self._sync_playlist_panel()
     self._flash_status(f"Playlist: {len(entries)} item(s)")
     self.setWindowTitle(f"{APP_NAME} — Playlist")
 
@@ -863,6 +878,7 @@ class VideoPlayer(QMainWindow):
     self._hidden_groups.clear()
     self._close_playlist_act.setEnabled(False)
     self._clear_category_menus()
+    self._sync_playlist_panel()
     self._flash_status("Playlist closed")
 
   def _clear_category_menus(self):
@@ -908,8 +924,26 @@ class VideoPlayer(QMainWindow):
       show_all.triggered.connect(self._show_all_groups)
       self._playlist_groups_menu.addAction(show_all)
 
+  def _sync_playlist_panel(self) -> None:
+    """Keep the left panel in step with the loaded playlist and hidden groups."""
+    panel = getattr(self, "playlist_panel", None)
+    if panel is None:
+      return
+    if not self._playlist_entries:
+      panel.clear_playlist()
+      panel.hide()
+      return
+    if self._hidden_groups:
+      entries = [e for e in self._playlist_entries if e.group not in self._hidden_groups]
+    else:
+      entries = list(self._playlist_entries)
+    panel.set_entries(entries)
+    panel.show()
+
   def _open_group_popup_by_name(self, group_name: str) -> None:
     items = list((self._playlist_by_group or {}).get(group_name) or [])
+    if hasattr(self, "playlist_panel"):
+      self.playlist_panel.select_category(group_name)
     self._open_group_popup(group_name, items)
 
   def _open_group_popup(self, group_name: str, items: list):
@@ -939,16 +973,19 @@ class VideoPlayer(QMainWindow):
   def _hide_group(self, name: str):
     self._hidden_groups.add(name)
     self._rebuild_category_menus()
+    self._sync_playlist_panel()
     self._flash_status(f"Hidden: {name}")
 
   def _show_group(self, name: str):
     self._hidden_groups.discard(name)
     self._rebuild_category_menus()
+    self._sync_playlist_panel()
     self._flash_status(f"Shown: {name}")
 
   def _show_all_groups(self):
     self._hidden_groups.clear()
     self._rebuild_category_menus()
+    self._sync_playlist_panel()
     self._flash_status("All groups shown")
 
   def play_stream(self, url: str, title: str = "") -> None:
@@ -1718,9 +1755,11 @@ class VideoPlayer(QMainWindow):
       self._hide_timer.stop()
       self._last_cursor_pos = None
       self._show_controls()
+      self._sync_playlist_panel()
     else:
       self.showFullScreen()
       self.menuBar().hide()
+      self.playlist_panel.hide()
       self._last_cursor_pos = QCursor.pos()
       self._cursor_timer.start()
       self._show_controls()
@@ -1740,6 +1779,7 @@ class VideoPlayer(QMainWindow):
       self._hide_timer.stop()
       self._last_cursor_pos = None
       self._show_controls()
+      self._sync_playlist_panel()
       theme = get_theme(self.settings.theme_id)
       apply_icon(self.btn_fullscreen, "fullscreen", theme.text)
       self.btn_fullscreen.setToolTip("Fullscreen (F)")
