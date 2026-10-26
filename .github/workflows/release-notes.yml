@@ -1,0 +1,45 @@
+name: Release notes
+
+# Release bodies live in .github/release-notes/<tag>.md so they can be fixed
+# with a normal commit instead of the GitHub UI or an API token.
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/release-notes/*.md"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to update (e.g. v1.0.1)"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    name: Sync release notes
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Update release bodies
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG_INPUT: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+          if [[ -n "${TAG_INPUT}" ]]; then
+            files=(".github/release-notes/${TAG_INPUT}.md")
+          else
+            mapfile -t files < <(git diff --name-only HEAD^ HEAD -- '.github/release-notes/*.md')
+          fi
+          for file in "${files[@]}"; do
+            [[ -f "$file" ]] || { echo "skip: $file"; continue; }
+            tag="$(basename "$file" .md)"
+            echo "Updating release notes for $tag from $file"
+            gh release edit "$tag" --notes-file "$file"
+          done
