@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Build output (PyInstaller / AppImage / .deb)
+build/
+dist/
+*.AppDir/
+*.AppImage
+*.deb
+
+# Local binaries fetched for packaging (ffprobe/ffmpeg/appimagetool…)
+tools/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+
+# Local config and secrets
+.env
+.env.*
+.dev.vars
+
+# Logs and runtime junk
+*.log

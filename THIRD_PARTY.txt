@@ -1,0 +1,56 @@
+Yu Medija Player — third-party binaries
+=======================================
+Fetched over HTTPS on 2026-10-05 for za-windows / za-mac build folders.
+Checksums verified where the upstream published them.
+
+---------------------------------------------------------------------------
+1) libmpv (Windows) — za-windows/libmpv/
+---------------------------------------------------------------------------
+File:     libmpv-2.dll
+Size:     ~115 MiB (120863744 bytes)
+Arch:     x86_64 (PE32+)
+Source:   shinchiro/mpv-winbuild-cmake release 20261005
+URL:      https://github.com/shinchiro/mpv-winbuild-cmake/releases/tag/20261005
+Archive:  mpv-dev-x86_64-20261005-git-c152964208.7z
+SHA-256 (archive, recorded after download; upstream published no checksum file):
+          7d9dd506da6b77e6054f56052f7423d9f7eed764f85154a6221925aba37dbfb2
+License:  mpv is LGPL v2.1+ / GPL v2+ (see libmpv/Copyright, LICENSE.LGPL, LICENSE.GPL)
+          Upstream: https://github.com/mpv-player/mpv
+
+How used: PyInstaller (yu-medija-player.spec) picks all *.dll from libmpv/
+          and embeds them next to the frozen exe. mpv_bootstrap.py loads
+          libmpv-2.dll from that folder / app dir.
+
+---------------------------------------------------------------------------
+2) FFmpeg / ffprobe (Windows) — za-windows/tools/
+---------------------------------------------------------------------------
+Files:    ffmpeg.exe, ffprobe.exe, plus shared runtime DLLs:
+            avcodec-62.dll, avdevice-62.dll, avfilter-11.dll,
+            avformat-62.dll, avutil-60.dll, swresample-6.dll, swscale-9.dll
+Build:    BtbN FFmpeg-Builds — n8.1 win64-gpl-shared
+Archive:  ffmpeg-n8.1-latest-win64-gpl-shared-8.1.zip
+Source:   https://github.com/BtbN/FFmpeg-Builds/releases/tag/latest
+SHA-256 (verified against checksums.sha256 from the same release):
+          dfbb82e952cfa59570e4aaf98a1bcd4950bd9ec65e9ee8125ba73acf55f36681
+License:  GPL (tools/LICENSE.FFmpeg.txt) — GPL shared build (includes
+          GPL-licensed codecs). FFmpeg project: https://ffmpeg.org/
+
+How used: PyInstaller packs every file in tools/ next to the exe.
+          Inno Setup also copies tools\* into {app}.
+          App looks for ffprobe beside the exe and in tools/ (duration and
+          stream-language probing; playback itself is handled by libmpv).
+
+---------------------------------------------------------------------------
+3) ffmpeg / ffprobe (macOS) — NOT bundled
+---------------------------------------------------------------------------
+Reason:   No single official trustworthy universal static redistributable
+          was added. Use Homebrew on the Mac that builds/runs the app:
+            brew install ffmpeg
+          (build_mac.sh already installs ffmpeg via brew when missing.)
+          You may later drop ffmpeg/ffprobe into za-mac/tools/ if desired.
+
+---------------------------------------------------------------------------
+4) libmpv (macOS) — via Homebrew at build time
+---------------------------------------------------------------------------
+build_mac.sh / README: brew install mpv  → PyInstaller can pick up
+libmpv.dylib from Homebrew paths (see yu-medija-player.spec).

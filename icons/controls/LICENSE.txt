@@ -1,0 +1,11 @@
+Yu Medija Player — control bar icons
+====================================
+
+The SVG icons in this directory are original geometric artwork created for
+Yu Medija Player. They are intentionally simple Material / Lucide–inspired
+shapes (not copies of any proprietary icon font).
+
+License: CC0 1.0 Universal (public domain dedication)
+https://creativecommons.org/publicdomain/zero/1.0/
+
+You may use, modify, and redistribute these icons without attribution.
