@@ -65,35 +65,35 @@ jobs:
           draft: false
           fail_on_unmatched_files: true
           body: |
-            Lightweight cross-platform video player: Python/PyQt6 interface with **libmpv** playback.
+            Lightweight cross-platform video player: a Python/PyQt6 interface with **libmpv** playback.
 
-            ### Preuzimanje (Linux)
+            ### Download (Linux)
 
-            | Paket | Za koga |
-            | --- | --- |
-            | `yu-medija-player-*-x86_64.AppImage` | bilo koja distribucija — `chmod +x` pa pokreni |
-            | `yu-medija-player_*_amd64.deb` | Debian / Ubuntu / Mint — instaliraj sa `apt install ./fajl.deb` |
-            | `*.sha256` | checksum: `sha256sum -c fajl.sha256` |
+            | Package | For | Install |
+            | --- | --- | --- |
+            | `yu-medija-player-*-x86_64.AppImage` | any distribution | `chmod +x`, then run it |
+            | `yu-medija-player_*_amd64.deb` | Debian / Ubuntu / Mint | `sudo apt install ./yu-medija-player_*_amd64.deb` |
+            | `*.sha256` | checksums | `sha256sum -c file.sha256` |
 
             ```bash
             chmod +x yu-medija-player-*-x86_64.AppImage
-            ./yu-medija-player-*-x86_64.AppImage film.mkv
+            ./yu-medija-player-*-x86_64.AppImage movie.mkv
             ```
 
-            ### Funkcije
+            ### Features
 
-            - Većina formata preko libmpv: MP4, MKV, AVI, WebM, MOV, TS, M2TS, WMV, FLV…
-            - M3U/M3U8 playliste sa grupama, skrivanjem grupa i relativnim putanjama
-            - Titlovi: više eksternih SRT-ova, ugrađeni trackovi sa stvarnim nazivima jezika, pomak ±100 ms, OpenSubtitles pretraga
-            - Brzina reprodukcije 0.25×–4× (`[` / `]`, `R` za reset)
-            - Screenshot trenutnog frejma (`P`), 5 tema, welcome ekran sa nedavnim fajlovima, drag & drop
-            - Stream URL (IPTV/HLS) sa Referer/User-Agent podrškom
+            - Most formats through libmpv: MP4, MKV, AVI, WebM, MOV, TS, M2TS, WMV, FLV…
+            - M3U/M3U8 playlists with groups, hidden groups and relative paths
+            - Subtitles: several external SRT files, embedded tracks with real language names, ±100 ms delay, OpenSubtitles search
+            - Playback speed 0.25×–4× (`[` / `]` to step, `R` to reset)
+            - Screenshot of the current frame (`P`), five themes, welcome screen with recent files, drag and drop
+            - Stream URLs (IPTV/HLS) with Referer and User-Agent support
 
-            ### Napomene
+            ### Notes
 
-            - Potreban je sistemski **libmpv** (Arch/CachyOS: `pacman -S mpv`, Debian/Ubuntu: `libmpv2` — `.deb` ga vuče sam). Bez njega aplikacija koristi Qt Multimedia fallback sa manje formata.
-            - Na Wayland-u aplikacija ide preko XWayland-a jer se libmpv ugrađuje preko X11 `wid`; `QT_QPA_PLATFORM=wayland` forsira native.
-            - Paketi su izgrađeni u GitHub Actions na Ubuntu 24.04.
+            - A system **libmpv** is required (Arch/CachyOS: `pacman -S mpv`; Debian/Ubuntu: `libmpv2`, which the `.deb` pulls in). Without it the app falls back to Qt Multimedia with fewer formats.
+            - On Wayland the app runs through XWayland because libmpv is embedded through an X11 `wid`; `QT_QPA_PLATFORM=wayland` forces native mode.
+            - Packages are built in GitHub Actions on Ubuntu 24.04.
           files: |
             dist/yu-medija-player-*.AppImage
             dist/yu-medija-player_*.deb
