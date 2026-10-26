@@ -80,14 +80,11 @@ elif sys.platform == "darwin":
       pass
 
 else:
-  # Linux — unchanged: bundle system libmpv.so.2 when present
-  for cand in (
-      Path("/usr/lib/x86_64-linux-gnu/libmpv.so.2"),
-      Path("/usr/lib/libmpv.so.2"),
-  ):
-    if cand.is_file():
-      binaries.append((str(cand), "."))
-      break
+  # Linux — libmpv se NAMJERNO ne pakuje: vezan je za ffmpeg/glibc distribucije
+  # na kojoj je buildovan (npr. Ubuntu libavcodec.so.60), pa se na drugoj
+  # distribuciji ne može učitati i aplikacija padne u Qt fallback.
+  # Koristi se sistemski libmpv (`mpv` / `libmpv2`), a .deb ga ima u Depends.
+  pass
 
 # Optional tools/ (ffprobe, ffmpeg) shipped next to the frozen app
 _tools = root / "tools"
@@ -126,6 +123,14 @@ a = Analysis(
     cipher=block_cipher,
     noarchive=False,
 )
+
+# PipeWire/SPA su vezani za pokrenuti sesijski daemon — uz njih iz build
+# distribucije (npr. Ubuntu 1.0.5 vs Arch) Qt multimedia aborta pri startu.
+_SESSION_LIBS = ("libpipewire", "libspa")
+a.binaries = [
+    entry for entry in a.binaries
+    if not os.path.basename(entry[0]).startswith(_SESSION_LIBS)
+]
 
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 

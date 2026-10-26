@@ -89,8 +89,9 @@ jobs:
 
             ### Napomene
 
+            - Potreban je sistemski **libmpv** (Arch/CachyOS: `pacman -S mpv`, Debian/Ubuntu: `libmpv2` — `.deb` ga vuče sam). Bez njega aplikacija koristi Qt Multimedia fallback sa manje formata.
             - Na Wayland-u aplikacija ide preko XWayland-a jer se libmpv ugrađuje preko X11 `wid`; `QT_QPA_PLATFORM=wayland` forsira native.
-            - Paketi su izgrađeni u GitHub Actions na Ubuntu 24.04, pa `.deb` odgovara Debian/Ubuntu bibliotekama.
+            - Paketi su izgrađeni u GitHub Actions na Ubuntu 24.04.
           files: |
             dist/yu-medija-player-*.AppImage
             dist/yu-medija-player_*.deb
