@@ -74,7 +74,30 @@ INNER
 
 echo "→ Building $DEB_OUT"
 rm -f "$DEB_OUT"
-dpkg-deb --root-owner-group -Zgzip --build "$PKG_DIR" "$DEB_OUT"
+
+make_md5sums() {
+  ( cd "$PKG_DIR" && find usr -type f -print0 | sort -z | xargs -0 md5sum > DEBIAN/md5sums )
+}
+
+# .deb je ar arhiva: debian-binary + control.tar.* + data.tar.*
+# Ovo radi i bez dpkg-deb (npr. na Arch/Fedora build mašini).
+build_deb_manual() {
+  local tmp
+  tmp="$(mktemp -d)"
+  ( cd "$PKG_DIR" && tar --exclude=./DEBIAN -cf - ./ | xz -T0 -1 > "$tmp/data.tar.xz" )
+  ( cd "$PKG_DIR/DEBIAN" && tar -cf - ./ | xz -T0 -1 > "$tmp/control.tar.xz" )
+  printf '2.0\n' > "$tmp/debian-binary"
+  ( cd "$tmp" && ar rc "$DEB_OUT" debian-binary control.tar.xz data.tar.xz )
+  rm -rf "$tmp"
+}
+
+make_md5sums
+if command -v dpkg-deb >/dev/null 2>&1; then
+  dpkg-deb --root-owner-group -Zgzip --build "$PKG_DIR" "$DEB_OUT"
+else
+  echo "   (dpkg-deb nije instaliran — pakujem preko ar/tar)"
+  build_deb_manual
+fi
 echo ""
 echo "Done: $DEB_OUT"
 echo "Install with (use full path):"
