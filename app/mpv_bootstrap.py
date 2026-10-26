@@ -122,5 +122,64 @@ def prepare_mpv_library() -> Path | None:
       pass
     return dylib
 
-  # Linux: leave the system loader alone
+  # Linux: bez "dev" symlinka (libmpv.so) find_library("mpv") ne nađe ništa,
+  # a distribucije često imaju samo soname (libmpv.so.2).
+  if ctypes.util.find_library("mpv"):
+    return None
+  target = _find_linux_libmpv()
+  if target is None:
+    return None
+  resolved = str(target)
+  original = ctypes.util.find_library
+
+  def _find(name: str):  # noqa: ANN001
+    if name in ("mpv", "libmpv"):
+      return resolved
+    return original(name)
+
+  ctypes.util.find_library = _find  # type: ignore[assignment]
+  try:
+    ctypes.CDLL(resolved, mode=ctypes.RTLD_GLOBAL)
+  except OSError:
+    return None
+  return target
+
+
+def _find_linux_libmpv() -> Path | None:
+  """Pronađi libmpv preko ldconfig keša ili poznatih lib foldera."""
+  names = ("libmpv.so.2", "libmpv.so.1", "libmpv.so")
+
+  # ldconfig -p zna gdje je biblioteka i na 64-bitnim „lib64“ sistemima
+  import subprocess
+
+  try:
+    out = subprocess.run(
+        ["ldconfig", "-p"], capture_output=True, text=True, timeout=5
+    ).stdout
+    for line in out.splitlines():
+      if "libmpv.so" in line:
+        _, _, path = line.partition("=>")
+        cand = Path(path.strip().split(" (")[0])
+        if cand.is_file():
+          return cand
+  except (OSError, subprocess.SubprocessError):
+    pass
+
+  for folder in _candidate_dirs():
+    for name in names:
+      cand = folder / name
+      if cand.is_file():
+        return cand
+
+  for folder in (
+      Path("/usr/lib"),
+      Path("/usr/lib64"),
+      Path("/usr/lib/x86_64-linux-gnu"),
+      Path("/usr/lib/aarch64-linux-gnu"),
+      Path("/usr/local/lib"),
+  ):
+    for name in names:
+      cand = folder / name
+      if cand.is_file():
+        return cand
   return None

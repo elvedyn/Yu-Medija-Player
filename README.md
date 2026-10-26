@@ -137,6 +137,10 @@ sudo apt install libmpv2 ffmpeg gstreamer1.0-plugins-good gstreamer1.0-libav
 Arch / CachyOS: `sudo pacman -S mpv ffmpeg`. Without libmpv the app falls back to Qt
 Multimedia, which plays far fewer formats.
 
+> Linux packages do **not** bundle libmpv: a library built for one distro cannot be
+> loaded on another, so the AppImage and `.deb` use the system one (the `.deb` lists
+> `libmpv2` in `Depends`, the AppImage expects `mpv` to be installed).
+
 ## Layout
 
 ```
