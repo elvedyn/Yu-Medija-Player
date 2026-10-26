@@ -3,7 +3,7 @@
 ; (onefile exe already embeds icons, assets, and bundled libmpv DLLs)
 
 #define MyAppName "Yu Medija Player"
-#define MyAppVersion "1.0.0"
+#define MyAppVersion "1.0.1"
 #define MyAppPublisher "YuMedijaPlayer"
 #define MyAppExeName "yu-medija-player.exe"
 
