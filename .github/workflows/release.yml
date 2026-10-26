@@ -1,0 +1,97 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  linux:
+    name: Linux packages (AppImage + .deb)
+    runs-on: ubuntu-24.04
+    env:
+      # appimagetool je i sam AppImage — bez FUSE ga pokrećemo izdvojeno
+      APPIMAGE_EXTRACT_AND_RUN: "1"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Version from tag
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
+
+      - name: System libraries (Qt / libmpv for bundling)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libgl1 libegl1 libxkbcommon0 libxkbcommon-x11-0 \
+            libdbus-1-3 libxcb-cursor0 libmpv2
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      - name: Build PyInstaller binary
+        run: python -m PyInstaller --noconfirm yu-medija-player.spec
+
+      - name: Build AppImage
+        run: ./scripts/build_appimage.sh
+
+      - name: Build .deb
+        run: ./scripts/build_deb.sh
+
+      - name: Checksums
+        run: |
+          cd dist
+          sha256sum yu-medija-player-*.AppImage > "yu-medija-player-${VERSION}-x86_64.AppImage.sha256"
+          sha256sum yu-medija-player_*.deb > "yu-medija-player_${VERSION}_amd64.deb.sha256"
+          ls -lh
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Yu Medija Player ${{ github.ref_name }}
+          draft: false
+          fail_on_unmatched_files: true
+          body: |
+            Lightweight cross-platform video player: Python/PyQt6 interface with **libmpv** playback.
+
+            ### Preuzimanje (Linux)
+
+            | Paket | Za koga |
+            | --- | --- |
+            | `yu-medija-player-*-x86_64.AppImage` | bilo koja distribucija — `chmod +x` pa pokreni |
+            | `yu-medija-player_*_amd64.deb` | Debian / Ubuntu / Mint — instaliraj sa `apt install ./fajl.deb` |
+            | `*.sha256` | checksum: `sha256sum -c fajl.sha256` |
+
+            ```bash
+            chmod +x yu-medija-player-*-x86_64.AppImage
+            ./yu-medija-player-*-x86_64.AppImage film.mkv
+            ```
+
+            ### Funkcije
+
+            - Većina formata preko libmpv: MP4, MKV, AVI, WebM, MOV, TS, M2TS, WMV, FLV…
+            - M3U/M3U8 playliste sa grupama, skrivanjem grupa i relativnim putanjama
+            - Titlovi: više eksternih SRT-ova, ugrađeni trackovi sa stvarnim nazivima jezika, pomak ±100 ms, OpenSubtitles pretraga
+            - Brzina reprodukcije 0.25×–4× (`[` / `]`, `R` za reset)
+            - Screenshot trenutnog frejma (`P`), 5 tema, welcome ekran sa nedavnim fajlovima, drag & drop
+            - Stream URL (IPTV/HLS) sa Referer/User-Agent podrškom
+
+            ### Napomene
+
+            - Na Wayland-u aplikacija ide preko XWayland-a jer se libmpv ugrađuje preko X11 `wid`; `QT_QPA_PLATFORM=wayland` forsira native.
+            - Paketi su izgrađeni u GitHub Actions na Ubuntu 24.04, pa `.deb` odgovara Debian/Ubuntu bibliotekama.
+          files: |
+            dist/yu-medija-player-*.AppImage
+            dist/yu-medija-player_*.deb
+            dist/*.sha256
