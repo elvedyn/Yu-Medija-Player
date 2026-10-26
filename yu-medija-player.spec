@@ -124,13 +124,25 @@ a = Analysis(
     noarchive=False,
 )
 
-# PipeWire/SPA su vezani za pokrenuti sesijski daemon — uz njih iz build
-# distribucije (npr. Ubuntu 1.0.5 vs Arch) Qt multimedia aborta pri startu.
-_SESSION_LIBS = ("libpipewire", "libspa")
-a.binaries = [
-    entry for entry in a.binaries
-    if not os.path.basename(entry[0]).startswith(_SESSION_LIBS)
-]
+# Ne pakuj biblioteke vezane za build distribuciju:
+#  - PipeWire/SPA: uz njih Qt multimedia aborta kad se daemon razlikuje
+#  - libmpv i njegov ffmpeg: PyInstaller ih uvuce preko hook-a, a libmpv
+#    izgrađen za Ubuntu ne može se učitati na drugoj distribuciji
+def _is_system_media_lib(entry) -> bool:
+  src = str(entry[0])
+  name = os.path.basename(src)
+  if name.startswith(("libpipewire", "libspa")):
+    return True
+  if not src.startswith("/usr/lib"):
+    return False
+  return name.startswith((
+      "libmpv", "libavcodec", "libavformat", "libavutil", "libavfilter",
+      "libavdevice", "libpostproc", "libswresample", "libswscale",
+      "libplacebo", "libass", "libcodec2", "libuchardet",
+  ))
+
+
+a.binaries = [entry for entry in a.binaries if not _is_system_media_lib(entry)]
 
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 
