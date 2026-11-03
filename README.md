@@ -27,8 +27,10 @@ Or simply:
 
 - **Plays most formats** — libmpv handles MKV, MP4, AVI, WebM, MOV, TS/M2TS, MPEG,
   WMV, FLV and everything FFmpeg supports; hardware decoding optional in Settings.
-- **M3U / M3U8 playlists** with `group-title` / `#EXTGRP` groups. “Playlist groups”
-  menu lists groups with item counts; groups can be hidden and restored.
+- **M3U / M3U8 playlists** with `group-title` / `#EXTGRP` groups. A panel on the
+  left lists the groups with item counts and the channels inside them, with a
+  search box that filters by channel name or URL. Groups can also be hidden and
+  restored from the “Playlist groups” menu.
 - **Subtitles** — embedded tracks (VLC-style track menu) and external sidecar files
   in several languages, plus OpenSubtitles search, delay adjustment and font size.
 - **Screenshots** — PNG/JPG of the current frame (`P`), saved next to the video or
@@ -94,14 +96,14 @@ chmod +x scripts/*.sh
 ./scripts/build_deb.sh
 ```
 
-Creates: `dist/yu-medija-player_1.0.1_amd64.deb`
+Creates: `dist/yu-medija-player_1.0.2_amd64.deb`
 
 Install:
 
 ```bash
-sudo apt install ./dist/yu-medija-player_1.0.1_amd64.deb
+sudo apt install ./dist/yu-medija-player_1.0.2_amd64.deb
 # or
-sudo dpkg -i dist/yu-medija-player_1.0.1_amd64.deb
+sudo dpkg -i dist/yu-medija-player_1.0.2_amd64.deb
 ```
 
 Needs `dpkg-deb` (comes with `dpkg-dev` on Debian/Ubuntu/Mint).
@@ -112,13 +114,13 @@ Needs `dpkg-deb` (comes with `dpkg-dev` on Debian/Ubuntu/Mint).
 ./scripts/build_appimage.sh
 ```
 
-Creates: `dist/yu-medija-player-1.0.1-x86_64.AppImage`
+Creates: `dist/yu-medija-player-1.0.2-x86_64.AppImage`
 
 Run:
 
 ```bash
-chmod +x dist/yu-medija-player-1.0.1-x86_64.AppImage
-./dist/yu-medija-player-1.0.1-x86_64.AppImage
+chmod +x dist/yu-medija-player-1.0.2-x86_64.AppImage
+./dist/yu-medija-player-1.0.2-x86_64.AppImage
 ```
 
 The script downloads `appimagetool` once into `dist/tools/`.
