@@ -6,6 +6,7 @@ from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtWidgets import (
     QComboBox,
     QLabel,
+    QLineEdit,
     QListWidget,
     QListWidgetItem,
     QVBoxLayout,
@@ -34,6 +35,13 @@ class PlaylistPanel(QWidget):
     head.setObjectName("playlistTitle")
     root.addWidget(head)
 
+    self.search = QLineEdit()
+    self.search.setObjectName("playlistSearch")
+    self.search.setPlaceholderText("Search channels")
+    self.search.setClearButtonEnabled(True)
+    self.search.textChanged.connect(self._fill_list)
+    root.addWidget(self.search)
+
     self.category = QComboBox()
     self.category.setMinimumHeight(32)
     self.category.currentIndexChanged.connect(self._fill_list)
@@ -44,19 +52,24 @@ class PlaylistPanel(QWidget):
     self.list.itemDoubleClicked.connect(self._on_activated)
     root.addWidget(self.list, 1)
 
-    tip = QLabel("Double-click or Enter to play")
-    tip.setObjectName("settingsHint")
-    tip.setWordWrap(True)
-    root.addWidget(tip)
+    self.tip = QLabel("Double-click or Enter to play")
+    self.tip.setObjectName("settingsHint")
+    self.tip.setWordWrap(True)
+    root.addWidget(self.tip)
 
   def set_entries(self, entries: list[PlaylistEntry]) -> None:
     self._entries = list(entries)
     self._by_group = dict(group_entries(entries))
+    # Keep the chosen group and the search text when the list is rebuilt
+    # (e.g. after hiding a group from the menu).
+    previous = self.category.currentData()
     self.category.blockSignals(True)
     self.category.clear()
     self.category.addItem("All", "__all__")
     for name in self._by_group:
       self.category.addItem(name, name)
+    restored = self.category.findData(previous) if previous else -1
+    self.category.setCurrentIndex(restored if restored >= 0 else 0)
     self.category.blockSignals(False)
     self._fill_list()
 
@@ -72,6 +85,10 @@ class PlaylistPanel(QWidget):
     self._by_group = {}
     self.category.clear()
     self.list.clear()
+    self.tip.setText("Double-click or Enter to play")
+    self.search.blockSignals(True)
+    self.search.clear()
+    self.search.blockSignals(False)
 
   def _fill_list(self, *_args) -> None:
     self.list.clear()
@@ -80,11 +97,29 @@ class PlaylistPanel(QWidget):
       items = self._entries
     else:
       items = self._by_group.get(str(key), [])
+    query = self.search.text().strip()
+    needle = query.casefold()
+    if needle:
+      items = [
+          e for e in items
+          if needle in e.title.casefold() or needle in e.url.casefold()
+      ]
     for entry in items:
       item = QListWidgetItem(entry.title)
       item.setData(Qt.ItemDataRole.UserRole, entry.url)
       item.setToolTip(entry.url)
       self.list.addItem(item)
+    self._update_tip(len(items), query)
+
+  def _update_tip(self, count: int, query: str) -> None:
+    if not query:
+      self.tip.setText("Double-click or Enter to play")
+    elif count == 1:
+      self.tip.setText("1 matching channel")
+    elif count:
+      self.tip.setText(f"{count} matching channels")
+    else:
+      self.tip.setText(f"No channels match \"{query}\"")
 
   def _on_activated(self, item: QListWidgetItem) -> None:
     if item is None:
