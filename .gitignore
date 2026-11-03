@@ -27,3 +27,6 @@ tools/
 
 # Logs and runtime junk
 *.log
+
+# Landing page source (deployed separately to yumedija.com)
+/website/
